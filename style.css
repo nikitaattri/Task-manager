@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-  max-width: 700px;
+  max-width: 500px;
   margin: 50px auto;
   padding: 30px;
   background: #ffffff;
@@ -17,14 +17,6 @@ body {
 h1 {
   text-align: center;
   color: #333;
-}
-
-#calendar {
-  margin-bottom: 20px;
-  max-width: 100%;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .input-group {
@@ -40,7 +32,7 @@ input[type="text"] {
   border-radius: 4px 0 0 4px;
 }
 
-input[type="datetime-local"] {
+input[type="date"], input[type="time"] {
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
@@ -53,7 +45,7 @@ button {
   background: #28a745;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0 4px 4px 0;
   cursor: pointer;
 }
 

@@ -2,38 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Manager</title>
-
-  <!-- FullCalendar CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@5.11.2/main.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@5.11.2/main.min.css" rel="stylesheet" />
-  
-  <!-- FullCalendar JavaScript -->
-  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@5.11.2/main.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@5.11.2/main.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@5.11.2/main.min.js"></script>
-
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container">
     <h1>✅ Task Manager</h1>
-
-    <!-- Calendar -->
-    <div id="calendar"></div>
-
-    <!-- Task Input Section -->
     <div class="input-group">
       <input type="text" id="taskInput" placeholder="Enter a new task" />
-      <input type="datetime-local" id="taskTime" />
+      <input type="date" id="taskDate" />
+      <input type="time" id="taskTime" />
       <button onclick="addTask()">Add</button>
     </div>
-    
-    <!-- Task List -->
     <ul id="taskList"></ul>
   </div>
-  
   <script src="script.js"></script>
 </body>
 </html>

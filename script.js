@@ -1,58 +1,69 @@
-// Initialize the calendar
-document.addEventListener("DOMContentLoaded", function () {
-  const calendarEl = document.getElementById("calendar");
+// Load tasks from local storage on page load
+window.onload = function () {
+  loadTasks();
+};
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    plugins: ["dayGrid", "interaction"],
-    initialView: "dayGridMonth",  // Show calendar in month view
-    selectable: true,
-    events: [],  // To display existing tasks
-    dateClick: function (info) {
-      // Open task input when a date is clicked
-      const taskDate = info.dateStr;
-      const taskInput = document.getElementById("taskInput");
-      const taskTime = document.getElementById("taskTime");
+// Add a new task
+function addTask() {
+  const taskInput = document.getElementById("taskInput");
+  const taskText = taskInput.value.trim();
 
-      taskInput.value = "";
-      taskTime.value = "";
+  // Check if task is empty
+  if (taskText === "") {
+    alert("Please enter a task.");
+    return;
+  }
 
-      const addTaskButton = document.querySelector("button");
-      addTaskButton.onclick = function () {
-        const taskText = taskInput.value.trim();
-        const taskDueTime = taskTime.value;
-        if (taskText === "") {
-          alert("Please enter a task.");
-          return;
-        }
+  const taskDateInput = document.getElementById("taskDate");
+  const taskTimeInput = document.getElementById("taskTime");
+  const taskDate = taskDateInput.value;
+  const taskTime = taskTimeInput.value;
 
-        // Add event to calendar for the selected date
-        calendar.addEvent({
-          title: taskText,
-          start: taskDate + "T" + taskDueTime,
-          allDay: false
-        });
+  // Log inputs for debugging
+  console.log("Task:", taskText);
+  console.log("Date:", taskDate);
+  console.log("Time:", taskTime);
 
-        // Save task to local storage with the selected date
-        saveTaskToStorage(taskText, taskDate, taskDueTime);
+  // If no date or time is selected, alert the user
+  if (!taskDate || !taskTime) {
+    alert("Please set a date and time for the task.");
+    return;
+  }
 
-        taskInput.value = "";
-        taskTime.value = "";
-      };
-    },
+  const taskList = document.getElementById("taskList");
+  const li = document.createElement("li");
+
+  // Display task with date and time
+  li.textContent = `${taskText} - Due: ${taskDate} ${taskTime}`;
+
+  li.addEventListener("click", () => {
+    li.classList.toggle("completed");
+    saveTasks();
   });
 
-  // Render the calendar
-  calendar.render();
-});
+  const deleteBtn = document.createElement("button");
+  deleteBtn.textContent = "Delete";
+  deleteBtn.onclick = () => {
+    li.remove();
+    saveTasks();
+  };
 
-// Save task to local storage
-function saveTaskToStorage(taskText, taskDate, taskDueTime) {
-  const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
-  tasks.push({
-    text: taskText,
-    date: taskDate,
-    time: taskDueTime,
-    completed: false,
+  li.appendChild(deleteBtn);
+  taskList.appendChild(li);
+  taskInput.value = ""; // Clear input after adding
+  taskDateInput.value = ""; // Clear date input
+  taskTimeInput.value = ""; // Clear time input
+  saveTasks();
+}
+
+// Save all tasks to local storage
+function saveTasks() {
+  const tasks = [];
+  document.querySelectorAll("#taskList li").forEach((li) => {
+    tasks.push({
+      text: li.firstChild.textContent,
+      completed: li.classList.contains("completed"),
+    });
   });
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
@@ -60,26 +71,28 @@ function saveTaskToStorage(taskText, taskDate, taskDueTime) {
 // Load tasks from local storage
 function loadTasks() {
   const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+  const taskList = document.getElementById("taskList");
+
   tasks.forEach((task) => {
-    // Add existing tasks as FullCalendar events
-    calendar.addEvent({
-      title: task.text,
-      start: task.date + "T" + task.time,
-      allDay: false
+    const li = document.createElement("li");
+    li.textContent = task.text;
+    if (task.completed) {
+      li.classList.add("completed");
+    }
+
+    li.addEventListener("click", () => {
+      li.classList.toggle("completed");
+      saveTasks();
     });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.onclick = () => {
+      li.remove();
+      saveTasks();
+    };
+
+    li.appendChild(deleteBtn);
+    taskList.appendChild(li);
   });
 }
-
-// Check for reminders every minute
-setInterval(() => {
-  const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
-  const now = new Date();
-  tasks.forEach((task, index) => {
-    const taskTime = new Date(task.date + "T" + task.time);
-    if (taskTime <= now && !task.completed) {
-      alert(`Reminder: "${task.text}" is due now!`);
-      tasks[index].completed = true; // Mark as completed after reminder
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-  });
-}, 60000);
