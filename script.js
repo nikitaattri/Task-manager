@@ -1,98 +1,120 @@
-// Load tasks from local storage on page load
 window.onload = function () {
   loadTasks();
+  requestNotificationPermission();
+  renderTasks();
 };
 
-// Add a new task
+function requestNotificationPermission() {
+  if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+}
+
 function addTask() {
   const taskInput = document.getElementById("taskInput");
   const taskText = taskInput.value.trim();
+  const taskDate = document.getElementById("taskDate").value;
+  const taskTime = document.getElementById("taskTime").value;
+  const taskCategory = document.getElementById("taskCategory").value;
 
-  // Check if task is empty
-  if (taskText === "") {
-    alert("Please enter a task.");
+  if (!taskText || !taskDate || !taskTime) {
+    alert("Please fill in all fields.");
     return;
   }
 
-  const taskDateInput = document.getElementById("taskDate");
-  const taskTimeInput = document.getElementById("taskTime");
-  const taskDate = taskDateInput.value;
-  const taskTime = taskTimeInput.value;
-
-  // Log inputs for debugging
-  console.log("Task:", taskText);
-  console.log("Date:", taskDate);
-  console.log("Time:", taskTime);
-
-  // If no date or time is selected, alert the user
-  if (!taskDate || !taskTime) {
-    alert("Please set a date and time for the task.");
-    return;
-  }
-
-  const taskList = document.getElementById("taskList");
-  const li = document.createElement("li");
-
-  // Display task with date and time
-  li.textContent = `${taskText} - Due: ${taskDate} ${taskTime}`;
-
-  li.addEventListener("click", () => {
-    li.classList.toggle("completed");
-    saveTasks();
-  });
-
-  const deleteBtn = document.createElement("button");
-  deleteBtn.textContent = "Delete";
-  deleteBtn.onclick = () => {
-    li.remove();
-    saveTasks();
+  const dueDateTime = new Date(`${taskDate}T${taskTime}`);
+  const task = {
+    id: Date.now(),
+    text: taskText,
+    date: taskDate,
+    time: taskTime,
+    category: taskCategory,
+    completed: false
   };
 
-  li.appendChild(deleteBtn);
-  taskList.appendChild(li);
-  taskInput.value = ""; // Clear input after adding
-  taskDateInput.value = ""; // Clear date input
-  taskTimeInput.value = ""; // Clear time input
-  saveTasks();
-}
-
-// Save all tasks to local storage
-function saveTasks() {
-  const tasks = [];
-  document.querySelectorAll("#taskList li").forEach((li) => {
-    tasks.push({
-      text: li.firstChild.textContent,
-      completed: li.classList.contains("completed"),
-    });
-  });
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-// Load tasks from local storage
-function loadTasks() {
   const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
-  const taskList = document.getElementById("taskList");
+  tasks.push(task);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+  scheduleNotification(task);
+  renderTasks();
 
-  tasks.forEach((task) => {
-    const li = document.createElement("li");
-    li.textContent = task.text;
-    if (task.completed) {
-      li.classList.add("completed");
+  taskInput.value = "";
+  document.getElementById("taskDate").value = "";
+  document.getElementById("taskTime").value = "";
+}
+
+function deleteTask(id) {
+  const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+  const updatedTasks = tasks.filter(task => task.id !== id);
+  localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  renderTasks();
+}
+
+function toggleTaskComplete(id) {
+  const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+  const updatedTasks = tasks.map(task => {
+    if (task.id === id) {
+      task.completed = !task.completed;
     }
+    return task;
+  });
+  localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  renderTasks();
+}
 
-    li.addEventListener("click", () => {
-      li.classList.toggle("completed");
-      saveTasks();
-    });
+function clearCompleted() {
+  const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+  const pendingTasks = tasks.filter(task => !task.completed);
+  localStorage.setItem("tasks", JSON.stringify(pendingTasks));
+  renderTasks();
+}
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.onclick = () => {
-      li.remove();
-      saveTasks();
-    };
+function renderTasks() {
+  const taskList = document.getElementById("taskList");
+  const filterStatus = document.getElementById("filterStatus").value;
+  const filterCategory = document.getElementById("filterCategory").value;
 
-    li.appendChild(deleteBtn);
+  const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+  taskList.innerHTML = "";
+
+  const filteredTasks = tasks.filter(task => {
+    const statusMatch = filterStatus === "all" || !task.completed;
+    const categoryMatch = filterCategory === "all" || task.category === filterCategory;
+    return statusMatch && categoryMatch;
+  });
+
+  filteredTasks.forEach(task => {
+    const li = document.createElement("li");
+    if (task.completed) li.classList.add("completed");
+    li.innerHTML = `
+      <span>
+        <input type="checkbox" ${task.completed ? "checked" : ""} onchange="toggleTaskComplete(${task.id})">
+        <strong>[${task.category}]</strong> ${task.text} - Due: ${task.date} ${task.time}
+      </span>
+      <button onclick="deleteTask(${task.id})">✖</button>
+    `;
     taskList.appendChild(li);
   });
+
+  document.getElementById("taskCount").innerText = `Total Tasks: ${filteredTasks.length}`;
+}
+
+function scheduleNotification(task) {
+  const now = new Date();
+  const due = new Date(`${task.date}T${task.time}`);
+  const delay = due.getTime() - now.getTime();
+
+  if (delay > 0 && "Notification" in window && Notification.permission === "granted") {
+    setTimeout(() => {
+      new Notification("Task Reminder", {
+        body: `${task.text} is due now! [${task.category}]`,
+        icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+      });
+    }, delay);
+  }
+}
+
+function loadTasks() {
+  const tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+  tasks.forEach(task => scheduleNotification(task));
 }

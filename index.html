@@ -2,21 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Task Manager</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script defer src="script.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>✅ Task Manager</h1>
+    <h1><span class="icon">✅</span> Task Manager</h1>
+
     <div class="input-group">
       <input type="text" id="taskInput" placeholder="Enter a new task" />
       <input type="date" id="taskDate" />
+    </div>
+    <div class="input-group">
       <input type="time" id="taskTime" />
+      <select id="taskCategory">
+        <option value="Work">Work</option>
+        <option value="Study">Study</option>
+        <option value="Personal">Personal</option>
+      </select>
       <button onclick="addTask()">Add</button>
     </div>
+
+    <div class="filters">
+      <label for="filterStatus">Filter Tasks:</label>
+      <select id="filterStatus" onchange="renderTasks()">
+        <option value="all">All</option>
+        <option value="pending">Pending</option>
+      </select>
+
+      <label for="filterCategory">Category:</label>
+      <select id="filterCategory" onchange="renderTasks()">
+        <option value="all">All</option>
+        <option value="Work">Work</option>
+        <option value="Study">Study</option>
+        <option value="Personal">Personal</option>
+      </select>
+    </div>
+
+    <button onclick="clearCompleted()" class="clear-btn">Clear Completed Tasks</button>
+    <div class="task-count" id="taskCount"></div>
     <ul id="taskList"></ul>
   </div>
-  <script src="script.js"></script>
 </body>
 </html>
